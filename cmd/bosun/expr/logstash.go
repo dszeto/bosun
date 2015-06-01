@@ -24,12 +24,14 @@ var LogstashElastic = map[string]parse.Func{
 		parse.TypeSeries,
 		logstashTagQuery,
 		LSCount,
+		nil,
 	},
 	"lsstat": {
 		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeString},
 		parse.TypeSeries,
 		logstashTagQuery,
 		LSStat,
+		nil,
 	},
 }
 

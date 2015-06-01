@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -88,12 +89,14 @@ var Graphite = map[string]parse.Func{
 		parse.TypeSeries,
 		graphiteTagQuery,
 		GraphiteBand,
+		nil,
 	},
 	"graphite": {
 		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeString},
 		parse.TypeSeries,
 		graphiteTagQuery,
 		GraphiteQuery,
+		nil,
 	},
 }
 
@@ -104,30 +107,42 @@ var TSDB = map[string]parse.Func{
 		parse.TypeSeries,
 		tagQuery,
 		Band,
+		nil,
 	},
 	"change": {
 		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString},
 		parse.TypeNumber,
 		tagQuery,
 		Change,
+		nil,
 	},
 	"count": {
 		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString},
 		parse.TypeScalar,
 		nil,
 		Count,
+		nil,
 	},
 	"diff": {
 		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString},
 		parse.TypeNumber,
 		tagQuery,
 		Diff,
+		nil,
 	},
 	"q": {
 		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString},
 		parse.TypeSeries,
 		tagQuery,
 		Query,
+		nil,
+	},
+	"window": {
+		[]parse.FuncType{parse.TypeString, parse.TypeString, parse.TypeString, parse.TypeScalar, parse.TypeString},
+		parse.TypeSeries,
+		tagQuery,
+		Window,
+		windowCheck,
 	},
 }
 
@@ -139,78 +154,91 @@ var builtins = map[string]parse.Func{
 		parse.TypeNumber,
 		tagFirst,
 		Avg,
+		nil,
 	},
 	"dev": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Dev,
+		nil,
 	},
 	"first": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		First,
+		nil,
 	},
 	"forecastlr": {
 		[]parse.FuncType{parse.TypeSeries, parse.TypeScalar},
 		parse.TypeNumber,
 		tagFirst,
 		Forecast_lr,
+		nil,
 	},
 	"last": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Last,
+		nil,
 	},
 	"len": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Length,
+		nil,
 	},
 	"max": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Max,
+		nil,
 	},
 	"median": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Median,
+		nil,
 	},
 	"min": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Min,
+		nil,
 	},
 	"percentile": {
 		[]parse.FuncType{parse.TypeSeries, parse.TypeScalar},
 		parse.TypeNumber,
 		tagFirst,
 		Percentile,
+		nil,
 	},
 	"since": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Since,
+		nil,
 	},
 	"sum": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Sum,
+		nil,
 	},
 	"streak": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeNumber,
 		tagFirst,
 		Streak,
+		nil,
 	},
 
 	// Group functions
@@ -219,6 +247,7 @@ var builtins = map[string]parse.Func{
 		parse.TypeSeries,
 		tagRename,
 		Rename,
+		nil,
 	},
 
 	"t": {
@@ -226,12 +255,14 @@ var builtins = map[string]parse.Func{
 		parse.TypeSeries,
 		tagTranspose,
 		Transpose,
+		nil,
 	},
 	"ungroup": {
 		[]parse.FuncType{parse.TypeNumber},
 		parse.TypeScalar,
 		nil,
 		Ungroup,
+		nil,
 	},
 
 	// Other functions
@@ -241,66 +272,77 @@ var builtins = map[string]parse.Func{
 		parse.TypeNumber,
 		tagFirst,
 		Abs,
+		nil,
 	},
 	"d": {
 		[]parse.FuncType{parse.TypeString},
 		parse.TypeScalar,
 		nil,
 		Duration,
+		nil,
 	},
 	"epoch": {
 		[]parse.FuncType{},
 		parse.TypeScalar,
 		nil,
 		Epoch,
+		nil,
 	},
 	"dropge": {
 		[]parse.FuncType{parse.TypeSeries, parse.TypeScalar},
 		parse.TypeSeries,
 		tagFirst,
 		DropGe,
+		nil,
 	},
 	"drople": {
 		[]parse.FuncType{parse.TypeSeries, parse.TypeScalar},
 		parse.TypeSeries,
 		tagFirst,
 		DropLe,
+		nil,
 	},
 	"dropna": {
 		[]parse.FuncType{parse.TypeSeries},
 		parse.TypeSeries,
 		tagFirst,
 		DropNA,
+		nil,
 	},
 	"des": {
 		[]parse.FuncType{parse.TypeSeries, parse.TypeScalar, parse.TypeScalar},
 		parse.TypeSeries,
 		tagFirst,
 		Des,
+		nil,
 	},
 	"nv": {
 		[]parse.FuncType{parse.TypeNumber, parse.TypeScalar},
 		parse.TypeNumber,
 		tagFirst,
 		NV,
+		nil,
 	},
 	"limit": {
 		[]parse.FuncType{parse.TypeNumber, parse.TypeScalar},
 		parse.TypeNumber,
 		tagFirst,
 		Limit,
+		nil,
 	},
 	"filter": {
 		[]parse.FuncType{parse.TypeSeries, parse.TypeNumber},
 		parse.TypeSeries,
 		tagFirst,
 		Filter,
+		nil,
 	},
 	"sort": {
 		[]parse.FuncType{parse.TypeNumber, parse.TypeString},
 		parse.TypeNumber,
 		tagFirst,
 		Sort,
+		nil,
 	},
 }
 
@@ -528,6 +570,120 @@ func GraphiteBand(e *State, T miniprofiler.Timer, query, duration, period, forma
 	}
 	return
 }
+
+func Window(e *State, T miniprofiler.Timer, query, duration, period string, num float64, rfunc string) (r *Results, err error) {
+	fn, ok := e.GetFunction(rfunc)
+	if !ok {
+		return nil, fmt.Errorf("expr: Window: no %v function", rfunc)
+	}
+	f := reflect.ValueOf(fn.F)
+	r = new(Results)
+	r.IgnoreOtherUnjoined = true
+	r.IgnoreUnjoined = true
+	T.Step("window", func(T miniprofiler.Timer) {
+		var d, p opentsdb.Duration
+		d, err = opentsdb.ParseDuration(duration)
+		if err != nil {
+			return
+		}
+		p, err = opentsdb.ParseDuration(period)
+		if err != nil {
+			return
+		}
+		if num < 1 || num > 100 {
+			err = fmt.Errorf("expr: Band: num out of bounds")
+		}
+		var q *opentsdb.Query
+		q, err = opentsdb.ParseQuery(query)
+		if err != nil {
+			return
+		}
+		if err = e.Search.Expand(q); err != nil {
+			return
+		}
+		req := opentsdb.Request{
+			Queries: []*opentsdb.Query{q},
+		}
+		now := e.now
+		req.End = now.Unix()
+		req.Start = now.Add(time.Duration(-d)).Unix()
+		if err = req.SetTime(e.now); err != nil {
+			return
+		}
+		for i := 0; i < int(num); i++ {
+			now = now.Add(time.Duration(-p))
+			req.End = now.Unix()
+			req.Start = now.Add(time.Duration(-d)).Unix()
+			var s opentsdb.ResponseSet
+			s, err = timeTSDBRequest(e, T, &req)
+			if err != nil {
+				return
+			}
+			for _, res := range s {
+				if e.squelched(res.Tags) {
+					continue
+				}
+				values := make(Series)
+				min := int64(0)
+				a := &Result{Group: res.Tags}
+				for k, v := range res.DPS {
+					i, e := strconv.ParseInt(k, 10, 64)
+					if e != nil {
+						err = e
+						return
+					}
+					if min == 0 || i < min {
+						min = i
+					}
+					values[time.Unix(i, 0).UTC()] = float64(v)
+				}
+				a.Value = values
+				ar := &Results{
+					Results: ResultSlice{a},
+				}
+				fr := f.Call([]reflect.Value{reflect.ValueOf(e), reflect.ValueOf(T), reflect.ValueOf(ar)})
+				if !fr[1].IsNil() {
+					if err = fr[1].Interface().(error); err != nil {
+						return
+					}
+				}
+				t := time.Unix(min, 0).UTC()
+				fres := float64(fr[0].Interface().(*Results).Results[0].Value.(Number))
+				found := false
+				for _, result := range r.Results {
+					if result.Group.Equal(a.Group) {
+						found = true
+						v := result.Value.(Series)
+						v[t] = fres
+						break
+					}
+				}
+				if !found {
+					r.Results = append(r.Results, &Result{
+						Group: a.Group,
+						Value: Series{
+							t: fres,
+						},
+					})
+				}
+			}
+		}
+	})
+	return
+}
+
+func windowCheck(t *parse.Tree, f *parse.FuncNode) error {
+	name := f.Args[4].(*parse.StringNode).Text
+	v, ok := t.GetFunction(name)
+	if !ok {
+		return fmt.Errorf("expr: Window: unknown function %v", name)
+	}
+	if len(v.Args) != 1 || v.Args[0] != parse.TypeSeries || v.Return != parse.TypeNumber {
+		return fmt.Errorf("expr: Window: %v is not a reduction function", name)
+	}
+	return nil
+}
+
 func Band(e *State, T miniprofiler.Timer, query, duration, period string, num float64) (r *Results, err error) {
 	r = new(Results)
 	r.IgnoreOtherUnjoined = true
